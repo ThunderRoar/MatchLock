@@ -1,5 +1,5 @@
 {
-  "name": "@midnight-ntwrk/example-bboard",
+  "name": "matchlock",
   "version": "0.1.0",
   "author": "IOG",
   "license": "MIT",
@@ -10,8 +10,8 @@
   },
   "workspaces": {
     "packages": [
-      "bboard-cli",
-      "bboard-ui",
+      "cli",
+      "ui",
       "api",
       "contract"
     ]

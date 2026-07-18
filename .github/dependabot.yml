@@ -85,7 +85,7 @@ updates:
           - "@testing-library/*"
 
   - package-ecosystem: "npm"
-    directory: "/bboard-cli"
+    directory: "/cli"
     schedule:
       interval: "weekly"
     cooldown:

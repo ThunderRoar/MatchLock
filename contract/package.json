@@ -1,5 +1,5 @@
 {
-  "name": "@midnight-ntwrk/bboard-contract",
+  "name": "matchlock-contract",
   "type": "module",
   "main": "./dist/index.js",
   "module": "./dist/index.js",

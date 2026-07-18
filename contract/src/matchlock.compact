@@ -1,0 +1,95 @@
+// MatchLock — mutual-consent disclosure on Midnight. A party's intent toward a
+// counterparty stays secret until that counterparty independently points back;
+// only then does the pairing unlock. Built on non-interactive ECDH "matching
+// tags" on the Jubjub curve: two parties who point at each other derive the same
+// shared secret with no communication, so their posts land in the same slot.
+//
+// Compact has no in-circuit encryption, so the reveal payload is encrypted
+// client-side (AES-GCM keyed by the shared secret) and passed in as an opaque
+// fixed-size Bytes blob; the circuit only stores it.
+
+pragma language_version 0.23;
+
+import CompactStandardLibrary;
+
+// Hash domain-separation tags are inlined as Field literals: 1 = link, 2 = nullifier.
+
+// Public key directory. A public key isn't secret (only intent is), so we
+// publish the full point so others can target it; keyed by id = hash(x, y).
+struct PubKey {
+  x: Bytes<32>;
+  y: Bytes<32>;
+}
+export ledger registry: Map<Bytes<32>, PubKey>;
+export ledger registrantCount: Counter;
+
+// Match slots keyed by the ECDH `link`. Up to two ciphertexts accumulate; at
+// count == 2 the pairing is matched. Ciphertext width must match crypto.ts.
+export ledger slotCount: Map<Bytes<32>, Uint<8>>;
+export ledger slotCipherA: Map<Bytes<32>, Bytes<128>>;
+export ledger slotCipherB: Map<Bytes<32>, Bytes<128>>;
+
+// Blocks a party from posting the same direction twice (which would fake a match).
+export ledger usedNullifiers: Set<Bytes<32>>;
+
+// The user's secret scalar, held only in wallet private state — never disclosed.
+witness localSecretKey(): Field;
+
+export circuit publicKeyId(pk: JubjubPoint): Bytes<32> {
+  return persistentHash<Vector<2, Field>>([jubjubPointX(pk), jubjubPointY(pk)]);
+}
+
+// Register the caller: prove knowledge of `sk` by deriving PK = sk*G, publish the
+// coordinates, and return the shareable identity id.
+export circuit register(): Bytes<32> {
+  const sk = localSecretKey();
+  const pk = ecMulGenerator(sk);
+  const id = disclose(publicKeyId(pk));
+  assert(!registry.member(id), "already registered");
+  registry.insert(id, disclose(PubKey {
+    x: jubjubPointX(pk) as Bytes<32>,
+    y: jubjubPointY(pk) as Bytes<32>
+  }));
+  registrantCount.increment(1);
+  return id;
+}
+
+// Express intent toward a target. Only `link`, `nf`, and `ciphertext` are
+// disclosed — never any identity, so the chain can't tell who points at whom.
+// We deliberately do NOT check the target against the registry: that would leak
+// the target, and it's unnecessary — the nullifier already stops a single party
+// from filling both sides of a slot, so fake/self matches are impossible.
+// Returns the `link` so the caller can poll `slotCount[link]` for a match.
+export circuit expressInterest(
+  targetPkX: Field,
+  targetPkY: Field,
+  ciphertext: Bytes<128>
+): Bytes<32> {
+  const sk = localSecretKey();
+  const targetPk = constructJubjubPoint(targetPkX, targetPkY);
+
+  // shared = sk * PK_target; the counterparty's sk_target * PK_me is the same point.
+  const shared = ecMul(targetPk, sk);
+  const link = disclose(
+    persistentHash<Vector<3, Field>>([1, jubjubPointX(shared), jubjubPointY(shared)])
+  );
+
+  const nf = disclose(
+    persistentHash<Vector<4, Field>>([2, sk, targetPkX, targetPkY])
+  );
+  assert(!usedNullifiers.member(nf), "you have already expressed this interest");
+  usedNullifiers.insert(nf);
+
+  const prior = slotCount.member(link) ? slotCount.lookup(link) : 0 as Uint<8>;
+  assert(prior < 2 as Uint<8>, "this pairing is already fully matched");
+
+  if (prior == 0 as Uint<8>) {
+    slotCount.insert(link, 1);
+    slotCipherA.insert(link, disclose(ciphertext));
+  } else {
+    slotCount.insert(link, 2);
+    slotCipherB.insert(link, disclose(ciphertext));
+  }
+
+  return link;
+}

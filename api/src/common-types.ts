@@ -1,99 +1,56 @@
-// This file is part of midnightntwrk/example-bboard.
-// Copyright (C) Midnight Foundation
-// SPDX-License-Identifier: Apache-2.0
-// Licensed under the Apache License, Version 2.0 (the "License");
-// You may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-
-/**
- * Bulletin board common types and abstractions.
- *
- * @module
- */
+// MatchLock common types and abstractions shared by the CLI and UI.
 
 import { type MidnightProviders } from '@midnight-ntwrk/midnight-js-types';
 import { type FoundContract } from '@midnight-ntwrk/midnight-js-contracts';
-import type { State, BBoardPrivateState, Contract, Witnesses } from '../../contract/src/index';
+import type { MatchLockPrivateState, Contract, Witnesses } from '../../contract/src/index';
+import type { Point } from '../../contract/src/crypto';
 
-export const bboardPrivateStateKey = 'bboardPrivateState';
-export type PrivateStateId = typeof bboardPrivateStateKey;
+export const matchLockPrivateStateKey = 'matchLockPrivateState';
+export type PrivateStateId = typeof matchLockPrivateStateKey;
 
-/**
- * The private states consumed throughout the application.
- *
- * @remarks
- * {@link PrivateStates} can be thought of as a type that describes a schema for all
- * private states for all contracts used in the application. Each key represents
- * the type of private state consumed by a particular type of contract.
- * The key is used by the deployed contract when interacting with a private state provider,
- * and the type (i.e., `typeof PrivateStates[K]`) represents the type of private state
- * expected to be returned.
- *
- * Since there is only one contract type for the bulletin board example, we only define a
- * single key/type in the schema.
- *
- * @public
- */
 export type PrivateStates = {
-  /**
-   * Key used to provide the private state for {@link BBoardContract} deployments.
-   */
-  readonly bboardPrivateState: BBoardPrivateState;
+  readonly matchLockPrivateState: MatchLockPrivateState;
 };
 
-/**
- * Represents a bulletin board contract and its private state.
- *
- * @public
- */
-export type BBoardContract = Contract<BBoardPrivateState, Witnesses<BBoardPrivateState>>;
+export type MatchLockContract = Contract<MatchLockPrivateState, Witnesses<MatchLockPrivateState>>;
 
-/**
- * The keys of the circuits exported from {@link BBoardContract}.
- *
- * @public
- */
-export type BBoardCircuitKeys = Exclude<keyof BBoardContract['impureCircuits'], number | symbol>;
+export type MatchLockCircuitKeys = Exclude<keyof MatchLockContract['impureCircuits'], number | symbol>;
 
-/**
- * The providers required by {@link BBoardContract}.
- *
- * @public
- */
-export type BBoardProviders = MidnightProviders<BBoardCircuitKeys, PrivateStateId, BBoardPrivateState>;
+export type MatchLockProviders = MidnightProviders<MatchLockCircuitKeys, PrivateStateId, MatchLockPrivateState>;
 
-/**
- * A {@link BBoardContract} that has been deployed to the network.
- *
- * @public
- */
-export type DeployedBBoardContract = FoundContract<BBoardContract>;
+export type DeployedMatchLockContract = FoundContract<MatchLockContract>;
 
-/**
- * A type that represents the derived combination of public (or ledger), and private state.
- */
-export type BBoardDerivedState = {
-  readonly state: State;
-  readonly sequence: bigint;
-  readonly message: string | undefined;
-
-  /**
-   * A readonly flag that determines if the current message was posted by the current user.
-   *
-   * @remarks
-   * The `owner` property of the public (or ledger) state is the public key of the message owner, while
-   * the `secretKey` property of {@link BBoardPrivateState} is the secret key of the current user. If
-   * `owner` corresponds to the public key derived from `secretKey`, then `isOwner` is `true`.
-   */
-  readonly isOwner: boolean;
+/** A registered participant: shareable id plus the public-key point to target. */
+export type Registrant = {
+  readonly id: string; // hex of publicKeyId
+  readonly pk: Point;
 };
 
-// TODO: for some reason I needed to include "@midnight-ntwrk/wallet-sdk-address-format": "1.0.0-rc.1", should we bump in to rc-2 ?
+/** A mutual match discovered on-chain (slot count == 2). */
+export type Match = {
+  readonly targetId: string; // hex
+  readonly targetPk: Point;
+  readonly link: string; // hex
+  readonly cipherA: Uint8Array;
+  readonly cipherB: Uint8Array;
+};
+
+/** A raw on-chain match slot, exactly as an outside observer sees it. */
+export type ChainSlot = {
+  readonly link: string; // hex — an opaque tag, not tied to any identity
+  readonly count: number; // 1 = one-sided (invisible intent), 2 = matched
+};
+
+/** Derived combination of public (ledger) and private state. */
+export type MatchLockDerivedState = {
+  /** The current user's public identity id (hex), derived from their secret key. */
+  readonly myId: string;
+  readonly isRegistered: boolean;
+  readonly registrantCount: number;
+  /** Everyone in the directory (excluding self), available as interest targets. */
+  readonly registrants: readonly Registrant[];
+  /** Mutual matches involving the current user. */
+  readonly matches: readonly Match[];
+  /** The raw public ledger view — the "what the chain saw" panel. */
+  readonly chainSlots: readonly ChainSlot[];
+};

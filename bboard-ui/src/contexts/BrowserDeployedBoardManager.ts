@@ -14,10 +14,11 @@
 // limitations under the License.
 
 import {
-  BBoardAPI,
-  type BBoardCircuitKeys,
-  type BBoardProviders,
-  type DeployedBBoardAPI,
+  MatchLockAPI,
+  type MatchLockCircuitKeys,
+  type MatchLockProviders,
+  type DeployedMatchLockAPI,
+  type MatchLockPrivateState,
 } from '../../../api/src/index';
 import { type ContractAddress, fromHex, toHex } from '@midnight-ntwrk/midnight-js-protocol/compact-runtime';
 import {
@@ -49,7 +50,6 @@ import {
   Transaction,
   TransactionId,
 } from '@midnight-ntwrk/midnight-js-protocol/ledger';
-import { BBoardPrivateState } from '@midnight-ntwrk/bboard-contract';
 import { inMemoryPrivateStateProvider } from '../in-memory-private-state-provider';
 import { NetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import type { UnboundTransaction } from '@midnight-ntwrk/midnight-js-types';
@@ -68,9 +68,9 @@ export interface DeployedBoardDeployment {
   readonly status: 'deployed';
 
   /**
-   * The {@link DeployedBBoardAPI} instance when connected to an on network bulletin board contract.
+   * The {@link DeployedMatchLockAPI} instance when connected to an on network bulletin board contract.
    */
-  readonly api: DeployedBBoardAPI;
+  readonly api: DeployedMatchLockAPI;
 }
 
 /**
@@ -126,7 +126,7 @@ export interface DeployedBoardAPIProvider {
  */
 export class BrowserDeployedBoardManager implements DeployedBoardAPIProvider {
   readonly #boardDeploymentsSubject: BehaviorSubject<Array<BehaviorSubject<BoardDeployment>>>;
-  #initializedProviders: Promise<BBoardProviders> | undefined;
+  #initializedProviders: Promise<MatchLockProviders> | undefined;
 
   /**
    * Initializes a new {@link BrowserDeployedBoardManager} instance.
@@ -168,7 +168,7 @@ export class BrowserDeployedBoardManager implements DeployedBoardAPIProvider {
     return deployment;
   }
 
-  private getProviders(): Promise<BBoardProviders> {
+  private getProviders(): Promise<MatchLockProviders> {
     // We use a cached `Promise` to hold the providers. This will:
     //
     // 1. Cache and re-use the providers (including the configured connector API), and
@@ -181,7 +181,7 @@ export class BrowserDeployedBoardManager implements DeployedBoardAPIProvider {
   private async deployDeployment(deployment: BehaviorSubject<BoardDeployment>): Promise<void> {
     try {
       const providers = await this.getProviders();
-      const api = await BBoardAPI.deploy(providers, this.logger);
+      const api = await MatchLockAPI.deploy(providers, this.logger);
 
       deployment.next({
         status: 'deployed',
@@ -201,7 +201,7 @@ export class BrowserDeployedBoardManager implements DeployedBoardAPIProvider {
   ): Promise<void> {
     try {
       const providers = await this.getProviders();
-      const api = await BBoardAPI.join(providers, contractAddress, this.logger);
+      const api = await MatchLockAPI.join(providers, contractAddress, this.logger);
 
       deployment.next({
         status: 'deployed',
@@ -217,16 +217,16 @@ export class BrowserDeployedBoardManager implements DeployedBoardAPIProvider {
 }
 
 /** @internal */
-const initializeProviders = async (logger: Logger): Promise<BBoardProviders> => {
+const initializeProviders = async (logger: Logger): Promise<MatchLockProviders> => {
   const networkId = import.meta.env.VITE_NETWORK_ID as NetworkId;
   const connectedAPI = await connectToWallet(logger, networkId);
   const zkConfigPath = window.location.origin; // '../../../contract/src/managed/bboard';
-  const keyMaterialProvider = new FetchZkConfigProvider<BBoardCircuitKeys>(zkConfigPath, fetch.bind(window));
+  const keyMaterialProvider = new FetchZkConfigProvider<MatchLockCircuitKeys>(zkConfigPath, fetch.bind(window));
   const config = await connectedAPI.getConfiguration();
-  const inMemoryBBoardPrivateStateProvider = inMemoryPrivateStateProvider<string, BBoardPrivateState>();
+  const inMemoryMatchLockPrivateStateProvider = inMemoryPrivateStateProvider<string, MatchLockPrivateState>();
   const shieldedAddresses = await connectedAPI.getShieldedAddresses();
   return {
-    privateStateProvider: inMemoryBBoardPrivateStateProvider,
+    privateStateProvider: inMemoryMatchLockPrivateStateProvider,
     zkConfigProvider: keyMaterialProvider,
     proofProvider: httpClientProofProvider(config.proverServerUri!, keyMaterialProvider),
     publicDataProvider: indexerPublicDataProvider(config.indexerUri, config.indexerWsUri),

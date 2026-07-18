@@ -6,8 +6,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "build": "rm -rf ./dist && tsc && vite build --mode preprod && cp -r ../contract/src/managed/bboard/keys ./dist/keys && cp -r ../contract/src/managed/bboard/zkir ./dist/zkir",
-    "build:preview": "rm -rf ./dist && tsc && vite build --mode preview && cp -r ../contract/src/managed/bboard/keys ./dist/keys && cp -r ../contract/src/managed/bboard/zkir ./dist/zkir",
+    "build": "rm -rf ./dist && tsc && vite build --mode preprod && cp -r ../contract/src/managed/matchlock/keys ./dist/keys && cp -r ../contract/src/managed/matchlock/zkir ./dist/zkir",
+    "build:preview": "rm -rf ./dist && tsc && vite build --mode preview && cp -r ../contract/src/managed/matchlock/keys ./dist/keys && cp -r ../contract/src/managed/matchlock/zkir ./dist/zkir",
     "build:start": "npm run build && npm run start",
     "build:start:preview": "npm run build:preview && npm run start",
     "ci": "npm run typecheck && npm run lint",

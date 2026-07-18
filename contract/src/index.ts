@@ -2,6 +2,7 @@ import { CompiledContract } from "@midnight-ntwrk/midnight-js-protocol/compact-j
 
 export * from "./managed/matchlock/contract/index.js";
 export * from "./witnesses";
+export * as crypto from "./crypto.js";
 
 import * as CompiledMatchLockContract from "./managed/matchlock/contract/index.js";
 import * as Witnesses from "./witnesses";

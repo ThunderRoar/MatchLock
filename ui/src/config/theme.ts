@@ -1,40 +1,41 @@
-// This file is part of midnightntwrk/example-bboard.
-// Copyright (C) Midnight Foundation
-// SPDX-License-Identifier: Apache-2.0
-// Licensed under the Apache License, Version 2.0 (the "License");
-// You may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// MatchLock theme — a dark "midnight" palette with a single violet accent.
 
 import { createTheme, alpha } from '@mui/material';
 
-const midnightGrey = alpha('#a8a8a8', 0.7);
+const accent = '#8b7cff'; // violet — the one accent color
+const paper = '#14141f';
+const bg = '#0a0a12';
 
 export const theme = createTheme({
-  typography: {
-    fontFamily: 'Helvetica',
-    allVariants: {
-      color: 'white',
-    },
-  },
   palette: {
-    primary: {
-      main: midnightGrey,
-      light: alpha(midnightGrey, 0.5),
-      dark: alpha(midnightGrey, 0.9),
+    mode: 'dark',
+    primary: { main: accent, light: alpha(accent, 0.75), dark: '#6f5cf0' },
+    secondary: { main: '#22d3ee' },
+    success: { main: '#34d399' },
+    background: { default: bg, paper },
+    text: { primary: '#f4f4fb', secondary: alpha('#f4f4fb', 0.6) },
+  },
+  typography: {
+    fontFamily: 'Helvetica, Arial, sans-serif',
+    h4: { fontWeight: 700, letterSpacing: '-0.02em' },
+    overline: { letterSpacing: '0.12em' },
+  },
+  shape: { borderRadius: 14 },
+  components: {
+    MuiCard: {
+      styleOverrides: {
+        root: {
+          backgroundImage: 'none',
+          border: `1px solid ${alpha(accent, 0.18)}`,
+          boxShadow: `0 12px 40px ${alpha('#000', 0.5)}`,
+          backdropFilter: 'blur(6px)',
+        },
+      },
     },
-    secondary: {
-      main: '#8c8c8c',
+    MuiButton: {
+      defaultProps: { disableElevation: true },
+      styleOverrides: { root: { textTransform: 'none', borderRadius: 999, fontWeight: 600 } },
     },
-    background: {
-      default: '#464655',
-    },
+    MuiChip: { styleOverrides: { root: { fontWeight: 600 } } },
   },
 });

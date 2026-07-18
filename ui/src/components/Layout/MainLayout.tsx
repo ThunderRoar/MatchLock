@@ -1,52 +1,48 @@
-// This file is part of midnightntwrk/example-bboard.
-// Copyright (C) Midnight Foundation
-// SPDX-License-Identifier: Apache-2.0
-// Licensed under the Apache License, Version 2.0 (the "License");
-// You may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// MatchLock application layout: header + a centered content column on a
+// dark radial "midnight" backdrop.
 
 import React from 'react';
 import { Box } from '@mui/material';
 import { Header } from './Header';
 
-/**
- * Provides layout for the bulletin board application.
- */
 export const MainLayout: React.FC<React.PropsWithChildren> = ({ children }) => {
   return (
-    <Box sx={{ minHeight: '100vh', overflow: 'hidden' }}>
+    <Box
+      sx={{
+        minHeight: '100vh',
+        position: 'relative',
+        background:
+          'radial-gradient(900px 500px at 15% 0%, rgba(139,124,255,0.16), transparent 55%),' +
+          'radial-gradient(900px 500px at 85% 10%, rgba(34,211,238,0.10), transparent 55%),' +
+          '#08080f',
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          inset: 0,
+          backgroundImage:
+            'linear-gradient(rgba(139,124,255,0.05) 1px, transparent 1px),' +
+            'linear-gradient(90deg, rgba(139,124,255,0.05) 1px, transparent 1px)',
+          backgroundSize: '48px 48px',
+          maskImage: 'radial-gradient(ellipse at 50% 0%, #000 0%, transparent 70%)',
+          WebkitMaskImage: 'radial-gradient(ellipse at 50% 0%, #000 0%, transparent 70%)',
+          pointerEvents: 'none',
+        },
+      }}
+    >
       <Header />
-      <Box sx={{ px: 10, position: 'relative', height: '100%' }}>
-        <img
-          src="/logo-render.png"
-          alt="logo-image"
-          height={607}
-          style={{ position: 'absolute', zIndex: 1, left: '2vw', top: '5vh' }}
-        />
-        <Box
-          sx={{
-            zIndex: 999,
-            position: 'relative',
-            display: 'flex',
-            justifyContent: 'center',
-            gap: '5px',
-            rowGap: '5px',
-            alignItems: 'center',
-            height: '100%',
-            py: '10vh',
-            px: '15vw',
-          }}
-        >
-          {children}
-        </Box>
+      <Box
+        sx={{
+          position: 'relative',
+          zIndex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 4,
+          px: 2,
+          py: { xs: 4, md: 8 },
+        }}
+      >
+        {children}
       </Box>
     </Box>
   );

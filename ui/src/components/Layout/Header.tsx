@@ -1,45 +1,41 @@
-// This file is part of midnightntwrk/example-bboard.
-// Copyright (C) Midnight Foundation
-// SPDX-License-Identifier: Apache-2.0
-// Licensed under the Apache License, Version 2.0 (the "License");
-// You may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-// http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
+// MatchLock application header.
 
 import React from 'react';
-import { AppBar, Box } from '@mui/material';
+import { AppBar, Box, Chip, Typography } from '@mui/material';
+import LockIcon from '@mui/icons-material/LockOutlined';
 
-/**
- * A simple application level header for the bulletin board application.
- */
 export const Header: React.FC = () => (
   <AppBar
     position="static"
     data-testid="header"
     sx={{
-      backgroundColor: '#000',
+      background: 'linear-gradient(90deg, #0a0a12 0%, #14101f 100%)',
+      borderBottom: '1px solid rgba(139,124,255,0.18)',
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
+      px: { xs: 3, md: 8 },
+      py: 1.5,
     }}
   >
-    <Box
-      sx={{
-        display: 'flex',
-        px: 10,
-        py: 2.2,
-        alignItems: 'center',
-      }}
-      data-testid="header-logo"
-    >
-      <img src="/midnight-logo.png" alt="logo-image" height={66} />
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }} data-testid="header-logo">
+      <LockIcon sx={{ color: '#8b7cff', fontSize: 30 }} />
+      <Box>
+        <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1 }}>
+          Match<span style={{ color: '#8b7cff' }}>Lock</span>
+        </Typography>
+        <Typography variant="caption" sx={{ color: 'rgba(244,244,251,0.55)' }}>
+          Reveal nothing until it&apos;s mutual
+        </Typography>
+      </Box>
+    </Box>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+      <Chip
+        label="Private DeFi matching"
+        size="small"
+        sx={{ bgcolor: 'rgba(139,124,255,0.12)', color: '#c7bfff', display: { xs: 'none', sm: 'flex' } }}
+      />
+      <img src="/midnight-logo.png" alt="Built on Midnight" height={40} />
     </Box>
   </AppBar>
 );

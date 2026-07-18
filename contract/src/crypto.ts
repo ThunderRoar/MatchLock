@@ -1,12 +1,15 @@
 // Off-chain crypto for MatchLock, built on the runtime's own primitives so an
-// ECDH shared secret computed here is identical to the one derived in-circuit.
-// Handles what Compact can't: key generation, PK derivation, ECDH, and AES-GCM
-// encryption of the reveal payload into the fixed-size blob the ledger stores.
+// ECDH shared secret (and the `link` tag) computed here is identical to what the
+// circuit derives. Handles what Compact can't: key generation, PK derivation,
+// ECDH, the link tag, and AES-GCM encryption of the reveal payload.
 
 import {
   ecMul,
   ecMulGenerator,
+  persistentHash,
   convertFieldToBytes,
+  CompactTypeField,
+  CompactTypeVector,
 } from "@midnight-ntwrk/compact-runtime";
 
 export type Point = { x: bigint; y: bigint };
@@ -15,6 +18,10 @@ export type Point = { x: bigint; y: bigint };
 export const CIPHERTEXT_BYTES = 128;
 const IV_BYTES = 12;
 export const MAX_PAYLOAD_BYTES = CIPHERTEXT_BYTES - IV_BYTES - 16; // minus GCM tag
+
+// Same hash shape the circuit uses for the link: persistentHash<Vector<3, Field>>.
+const LINK_DOMAIN = 1n;
+const linkType = new CompactTypeVector(3, CompactTypeField);
 
 /**
  * Random non-zero Jubjub scalar. The Jubjub scalar field (~2^252) is smaller
@@ -37,6 +44,12 @@ export const publicKey = (sk: bigint): Point => ecMulGenerator(sk);
 /** ECDH shared secret point (symmetric: sk_A*PK_B == sk_B*PK_A). */
 export const sharedSecret = (sk: bigint, target: Point): Point =>
   ecMul(target, sk);
+
+/** The on-chain slot `link` for (me -> target), recomputed off-chain. */
+export const computeLink = (sk: bigint, target: Point): Uint8Array => {
+  const shared = sharedSecret(sk, target);
+  return persistentHash(linkType, [LINK_DOMAIN, shared.x, shared.y]);
+};
 
 const deriveAesKey = async (shared: Point): Promise<CryptoKey> => {
   const material = new Uint8Array(64);

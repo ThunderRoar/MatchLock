@@ -18,7 +18,7 @@ import {
   decryptPayload,
   randomScalar,
   type Point,
-} from "./crypto.js";
+} from "../crypto.js";
 
 setNetworkId("undeployed");
 

@@ -310,7 +310,8 @@ const connectToWallet = (logger: Logger, networkId: string): Promise<ConnectedAP
         return connectedAPI;
       }),
       timeout({
-        first: 5_000,
+        // Generous: connect() blocks until the user approves the Lace popup.
+        first: 120_000,
         with: () =>
           throwError(() => {
             logger.error('Wallet connector API has failed to respond');

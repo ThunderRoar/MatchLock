@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { AppBar, Box, Chip, Typography } from '@mui/material';
-import LockIcon from '@mui/icons-material/LockOutlined';
+import { Logo } from '../Logo';
 
 export const Header: React.FC = () => (
   <AppBar
@@ -19,7 +19,7 @@ export const Header: React.FC = () => (
     }}
   >
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }} data-testid="header-logo">
-      <LockIcon sx={{ color: '#8b7cff', fontSize: 30 }} />
+      <Logo size={34} />
       <Box>
         <Typography variant="h6" sx={{ fontWeight: 800, letterSpacing: '-0.02em', lineHeight: 1 }}>
           Match<span style={{ color: '#8b7cff' }}>Lock</span>
